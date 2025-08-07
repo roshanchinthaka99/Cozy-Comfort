@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manufacturer Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .section {
+      flex: 1;
+      background-color: #fff;
+      padding: 25px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+
+    form input[type="text"],
+    form input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    form button[type="submit"],
+    .logout-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #1e90ff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      margin-right: 10px;
+    }
+
+    form button[type="submit"]:hover,
+    .logout-btn:hover {
+      background-color: #0b78d1;
+    }
+
+    #manufacturerList {
+      margin-top: 20px;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    #manufacturerList li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      line-height: 1.5;
+      background: #f1f1f1;
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+
+    .delete-btn {
+      padding: 5px 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .delete-btn:hover {
+      background-color: darkred;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Form Section (Left) -->
+    <div class="section">
+      <h2>🛠 Add Manufacturer</h2>
+      <form id="manufacturerForm">
+        <label>Model Name:</label><input type="text" id="model_name"><br>
+        <label>Material:</label><input type="text" id="material"><br>
+        <label>Production Capacity:</label><input type="number" id="capacity"><br>
+        <label>Stock:</label><input type="number" id="stock"><br>
+        <button type="submit">Add Manufacturer</button>
+      </form>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Manufacturer List Section (Right) -->
+    <div class="section">
+      <h2>📋 Manufacturer List</h2>
+      <ul id="manufacturerList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const api = "http://localhost:5000";
+
+    function loadManufacturers() {
+      fetch(api + "/manufacturers")
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById("manufacturerList");
+          list.innerHTML = '';
+          data.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span>Model: ${item.model_name}, Material: ${item.material}, Stock: ${item.stock}</span>
+              <button class="delete-btn" onclick="deleteManufacturer('${item.model_name}')">Delete</button>
+            `;
+            list.appendChild(li);
+          });
+        });
+    }
+
+    document.getElementById("manufacturerForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      fetch(api + "/manufacturer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model_name: document.getElementById("model_name").value,
+          material: document.getElementById("material").value,
+          production_capacity: parseInt(document.getElementById("capacity").value),
+          stock: parseInt(document.getElementById("stock").value)
+        })
+      }).then(() => {
+        alert("Manufacturer Added!");
+        this.reset();
+        loadManufacturers();
+      });
+    });
+
+    function deleteManufacturer(modelName) {
+      fetch(api + `/manufacturer/${modelName}`, {
+        method: "DELETE"
+      }).then(() => {
+        alert("Manufacturer Deleted!");
+        loadManufacturers();
+      });
+    }
+
+    function logout() {
+      window.location.href = "index.html";
+    }
+
+    window.onload = loadManufacturers;
+  </script>
+</body>
+</html>
